@@ -3,7 +3,7 @@ import {
   APIGatewayProxyEvent,
   Context,
 } from "aws-lambda";
-import { App, AwsLambdaReceiver, BlockAction, RespondArguments, SayArguments } from "@slack/bolt";
+import { App, AwsLambdaReceiver, BlockAction, SayArguments } from "@slack/bolt";
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { format } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
