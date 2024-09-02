@@ -97,7 +97,7 @@ function listMetricsTool() {
   };
 }
 
-// For CloudWatch metrics
+// It's a tool to get CloudWatch metrics via ToolUse
 async function listMetrics(){
   logger.info('listMetrics started');
   const client = new CloudWatchClient();
@@ -107,6 +107,7 @@ async function listMetrics(){
   return metrics ? metrics : [] as Metric[];
 }
 
+// The method of calling ToolUse 
 export async function getCWMetrics(
   startDate: string,
   endDate: string,
@@ -168,7 +169,7 @@ export async function getCWMetrics(
     messages,
     toolConfig: {
       tools: [
-        listMetricsTool(),
+        listMetricsTool(), // LLM always use this tool in ToolUse by this parameter.
       ],
     }
   }));
