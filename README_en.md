@@ -58,7 +58,6 @@ You can try this sample if the log is output to CloudWatch Logs. S3 and X-Ray ar
   - If you want to invlude AWS CloudTrail or Application Load Balancer (ALB) access logs, an Amazon Athena database must be created
   - If AWS X-Ray trace information is also used, an AWS X-Ray trace for the relevant system must have been obtained
 - Claude 3 Sonnet and Claude 3.5 Sonnet access has been granted from model access on Amazon Bedrock
-  - It uses ToolUse to select metrics to get metric data.
   - Claude 3.5 Sonnet is used for generation of the image written by Mermaid syntax.
 - Confirm that an alarm notification will be sent to Slack from the AWS Chatbot set up in the existing workload
   - If you don't have the test envrionment for FA2 or you cannot use it for FA2. You can create test environment as follow [How to create a test environment for FA2](./docs/HowToCreateTestEnvironment_en.md).
