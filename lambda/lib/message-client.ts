@@ -498,26 +498,32 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
   public async sendMessage(
     message: KnownBlock[] | string,
     channelId: string,
-    threadTs: string
+    threadTs?: string
   ){
-    if ((channelId.startsWith("C") || channelId.startsWith("D")) && threadTs) {
-      try {
+    try {
+      if ((channelId.startsWith("C") || channelId.startsWith("D")) && threadTs) {
         await this.slackClient.chat.postMessage({
           channel: channelId,
           text: "FA2からのメッセージ",
           blocks: message as KnownBlock[],
           thread_ts: threadTs,
         });
-      } catch (error) {
-        logger.error(JSON.stringify(error));
+      }else if(channelId.startsWith("C") || channelId.startsWith("D")){
         await this.slackClient.chat.postMessage({
           channel: channelId,
-          text: "Error. Please contact your system admin.",
-          thread_ts: threadTs,
+          text: "FA2からのメッセージ",
+          blocks: message as KnownBlock[]
         });
+      } else {
+        throw new Error("Channel ID and ThreadTS are required.");
       }
-    } else {
-      throw new Error("Channel ID and ThreadTS are required.");
+    } catch (error) {
+      logger.error(JSON.stringify(error));
+      await this.slackClient.chat.postMessage({
+        channel: channelId,
+        text: "Error. Please contact your system admin.",
+        thread_ts: threadTs,
+      });
     }
   }
 
@@ -526,10 +532,10 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
     filename: string,
     markdownText: string,
     channelId: string,
-    threadTs: string
+    threadTs?: string
   ){
-    if ((channelId.startsWith("C") || channelId.startsWith("D")) && threadTs) {
-      try {
+    try {
+      if ((channelId.startsWith("C") || channelId.startsWith("D")) && threadTs) {
         await this.slackClient.filesUploadV2({
           channel_id: channelId!,
           thread_ts: threadTs!,
@@ -537,16 +543,23 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
           content: markdownText,
           snippet_type: 'markdown'
         });
-      } catch (error) {
-        logger.error(JSON.stringify(error));
-        await this.slackClient.chat.postMessage({
-          channel: channelId,
-          text: "Error. Please contact your system admin.",
-          thread_ts: threadTs,
+      } else if (channelId.startsWith("C") || channelId.startsWith("D")){
+        await this.slackClient.filesUploadV2({
+          channel_id: channelId!,
+          filename,
+          content: markdownText,
+          snippet_type: 'markdown'
         });
+      } else {
+        throw new Error("Channel ID and ThreadTS are required.");
       }
-    } else {
-      throw new Error("Channel ID and ThreadTS are required.");
+    } catch (error) {
+      logger.error(JSON.stringify(error));
+      await this.slackClient.chat.postMessage({
+        channel: channelId,
+        text: "Error. Please contact your system admin.",
+        thread_ts: threadTs,
+      });
     }
   }
 
@@ -578,4 +591,89 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
     }
   }
   
+  public createHomeTabBlock(){
+    return this.language === "ja" ? [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "FA2をご利用いただきありがとうございます。"
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "FA2では次のコマンドが利用できます。"
+        }
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "insight",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "ユーザの質問に合わせ、必要なメトリクスデータを1日分取得し、そのデータを元に回答するコマンド。（利用シーン：パフォーマンス分析や傾向分析の支援）",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "`/insight {FA2に依頼したい分析内容}`"
+        }
+      }
+    ]:[
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Welcome to FA2!"
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "You can use follow commands."
+        }
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "insight",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "This command that captures 1 day's worth of required metric data according to user questions, and answers based on that data. (Use case: Support for performance analysis and trend analysis)",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "`/insight {user's query is about performance analysis or trend}`"
+        }
+      }
+    ];
+  }
 }

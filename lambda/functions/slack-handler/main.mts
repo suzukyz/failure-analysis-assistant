@@ -5,7 +5,7 @@ import {
 } from "aws-lambda";
 import { App, AwsLambdaReceiver, BlockAction, SayArguments } from "@slack/bolt";
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
-import { format } from "date-fns";
+import { format, sub } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { MessageClient } from "../../lib/message-client.js";
 import { invokeAsyncLambdaFunc } from "../../lib/aws-modules.js";
@@ -15,6 +15,7 @@ import logger from "../../lib/logger.js";
 // Environment variables
 const lang: Language = process.env.LANG ? (process.env.LANG as Language) : "en";
 const funcName = process.env.FUNCTION_NAME!;
+const metricsInsightFunction = process.env.METRICS_INSIGHT_NAME!;
 const slackAppTokenKey = process.env.SLACK_APP_TOKEN_KEY!;
 const slackSigningSecretKey = process.env.SLACK_SIGNING_SECRET_KEY!;
 
@@ -49,6 +50,24 @@ const app = new App({
 
 const messageClient = new MessageClient(token, "ja")
 
+app.event("app_home_opened", async ({event, client}) => {
+ 
+  try{
+    // views.publish を呼び出す
+    await client.views.publish({ 
+      user_id: event.user, 
+      view: {
+        type: 'home',
+        callback_id: 'home_view',
+        blocks: messageClient.createHomeTabBlock()
+      }
+    });
+  }catch(e){
+    logger.error(JSON.stringify(e));
+  }
+});
+
+
 // When app receive an alarm from AWS Chatbot, send the form of FA2.
 app.message("", async ({ event, body, payload, say }) => {
   logger.info(`Event= ${JSON.stringify(event)}`);
@@ -62,7 +81,6 @@ app.message("", async ({ event, body, payload, say }) => {
     const now = toZonedTime(new Date(), "Asia/Tokyo");
     const res = await say({
       blocks: messageClient.createFormBlock(format(now, "yyyy-MM-dd"), format(now, "HH:mm")),
-      thread_ts: event.ts,
       reply_broadcast: true
     } as SayArguments);
     logger.info(`response: ${JSON.stringify(res)}`);
@@ -111,8 +129,8 @@ app.action("submit_button", async ({ body, ack, respond }) => {
     await respond({
       blocks: messageClient.createMessageBlock(
         lang === "ja"
-          ? "リクエストを受け付けました。分析完了までお待ちください。"
-          : "Reveived your request. Please wait...",
+          ? `リクエストを受け付けました。分析完了までお待ちください。\nリクエスト内容: ${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})} `
+          : `Reveived your request. Please wait... \nInput parameters: ${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})} `,
       ),
       replace_original: true,
     });
@@ -124,6 +142,51 @@ app.action("submit_button", async ({ body, ack, respond }) => {
       replace_original: true,
     });
   }
+  return;
+});
+
+app.command('/insight', async ({ command, ack, respond }) => {
+  // コマンドリクエストを確認
+  await ack();
+
+  const now = new Date();
+  const nowItnTime = fromZonedTime(now, "Asia/Tokyo");
+  const pastItnTime = fromZonedTime(sub(now,{days: 1}), "Asia/Tokyo");
+
+  try{
+    // Invoke backend lambda
+    const res = await invokeAsyncLambdaFunc(
+      JSON.stringify({
+        question: command.text,
+        startDate: pastItnTime.toISOString(),
+        endDate: nowItnTime.toISOString(),
+        channelId: command.channel_id,
+      }),
+      metricsInsightFunction
+    );
+
+    if (res.StatusCode! > 400) {
+      throw new Error("Failed to invoke lambda function");
+    }
+
+    // Send the message to notify the completion of receiving request.
+    await respond({
+      blocks: messageClient.createMessageBlock(
+        lang === "ja"
+          ? `質問：${command.text}を受け付けました。 FA2の回答をお待ちください。`
+          : `FA2 received your question: ${command.text}. Please wait for its answer..`,
+      ),
+      replace_original: true,
+    });
+  } catch (err) {
+    // Send result to Slack
+    logger.error(JSON.stringify(err));
+    await respond({
+      blocks: messageClient.createErrorMessageBlock(),
+      replace_original: true,
+    });
+  }
+
   return;
 });
 
