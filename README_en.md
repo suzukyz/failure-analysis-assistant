@@ -3,7 +3,15 @@
 [日本語で読む](./README.md)
 
 This is a sample implementation that responds to alarms sent to Slack by AWS Chatbot and helps analyze the root cause of the failure.
+This sample code provide two features as below,
+
+**Failure analysis assist**
 Logs are retrieved from a predefined log storage location within a time range specified by the user, information is extracted and summarized with LLM, and information useful for failure analysis is returned to Slack.
+For an example of how the function works, see [Failure Analysis Assist](#failure-analysis-assist).
+
+**Metrics analysis support**
+In response to questions given by users, a function has been added to select metrics that require generative AI and answer questions based on that metric data.
+For an image of the operation of the function, see [Metric Analysis Assist](#metrics-analysis-assist).
 
 This is the sample code for the demo shown at the AWS Summit Japan 2024 booth.
 
@@ -47,7 +55,7 @@ You can try this sample if the log is output to CloudWatch Logs. S3 and X-Ray ar
    1. The parameters you set determine what to search for. A log group of Amazon CloudWatch Logs is required; database of Amazon Athena, and the parameter of AWS X-Ray are optional
    2. By increasing the number of search targets, there is a possibility that more accurate answers can be obtained
 5. The collected information is added as context to the prompt template included in FA2 and sent to Amazon Bedrock to summarize information related to the event and extract information necessary for event cause analysis
-6. In order to return answers obtained from LLM, submit answers to `response_url`.
+6. Send the answers obtained from LLM to Slack.
 
 ## Requirements
 
@@ -160,6 +168,8 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
 
 ### Testing
 
+#### Failure Analysis Assist
+
 Some kind of error occurred on the target system from which the log was output.
 (This time, we used AWS FIS and caused a connection failure from the Amazon ECS container to Amazon DynamoDB.)
 Then, the following alarm is displayed on the Slack channel.
@@ -184,6 +194,21 @@ Clicked the button, requests are accepted.
 Wait a few minutes, and the answers will appear in Slack.
 
 ![fa2-answer](./docs/images/en/fa2-slackapp-answer.png)
+
+#### Metrics Analysis Assist
+
+If you type `/insight` in the Slack chat form and send, a modal will be displayed.
+In the modal form, enter [the question you want answered based on the metrics] and [the period you want to obtain the metrics].
+In about 1-2 minutes, you'll get an answer.
+The metric `Period` is calculated by `3600 + floor(number of days acquired / 5) * 3600`.
+If you want to change the expression, see `createSelectMetricsForInsightPrompt()` in `lambda/lib/prompts.ts`.
+
+The following example asks questions about ECS performance.
+
+![insight-form](./docs/images/en/fa2-insight-form.png)
+
+![query-about-ecs-performance](./docs/images/en/fa2-query-about-ecs-performance.png)
+
 
 ## Delete deployed resources
 
