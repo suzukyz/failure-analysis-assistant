@@ -170,10 +170,10 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
 6. 左メニューの[Slash Commands]をクリックし、[Create New Command]をクリックします
    1. 以下の表のように値を入力し、すべて入力したら、[Save]をクリックします
 
-      | 項目名            | 値                            |
+      | 項目名             | 値                            |
       | ----------------- | ----------------------------- |
       | Command           | /insight                      |
-      | Request URL       | と同じURL                     |
+      | Request URL       | Request URL と同じ URL         |
       | Short Description | Get insight for your workload |
 
 7. 手順4で行ったトークンのスコープ変更に伴い、Slack App の再インストールが必要になります。画面の上の方に再インストールを促すポップアップが出るので、それをクリックして、対象のチャンネルへ Slack App を再インストールします

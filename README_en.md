@@ -155,16 +155,29 @@ $ npx cdk bootstrap --profile {your_profile}
 $ npx cdk deploy --all --profile {your_profile} --require-approval never
 ```
 
+> [!NOTE]
+> The part that begins with the description of `// Additional process` in `failure-analysis-assistant/lambda/functions/fa2-lambda/main.mts` that is the process of generating a hypothetical diagram of the cause of the fault.
+> If you don't need to generate a diagram, comment out or delete this part.
+
 #### Configuration of Slack App
 
 1. After deploying the CDK, check the Amazon API Gateway endpoint URL
 2. Access to [Slack api](https://api.slack.com/apps), select [Interactivity & Shortcuts] on the left menu of the displayed screen, set [Interactivity] to turn on, and enter the endpoint of Amazon API Gateway in [Request URL](example: https://{API Gateway endpoint}/v1/slack/events)
    1. If the API resource name hasn't changed, it will be /slack/events, as shown in the example
 3. Next, click [Event Subscriptions] on the left menu, set [Enable Events] to turn on, then set [Reqeust URL] in the same way as [Interactivity]
-4. Open [Subscribe to bot events] on the same screen, click [Add Bot User Event] and add `message.channels`
+4. Open [Subscribe to bot events] on the same screen, click [Add Bot User Event] and add `message.channels` and `app_home_opened`.
 5. Click [Save Changes]
-6. Once you've made it this far, a pop-up prompting you to reinstall will appear at the top of the screen, click on it and reinstall the Slack App on the target channel. Because you modified the permission of Slack App token in step 4.
-7. Join the Slack App to the target channel. To add, open the desired channel and click on the channel name. Select [Integrations] and then click [Add an app]. Find FA2 (or the name of the app you have registered) and click the [Add] button. Follow the instructions that appear to install the app.
+6. Click [Slash Commands] on the left menu, then click [Create New Command]
+   1. Enter the values as shown in the table below, and then click Save when you have entered them all
+
+      | item name         | value                         |
+      | ----------------- | ----------------------------- |
+      | Command           | /insight                      |
+      | Request URL       | same URL                      |
+      | Short Description | Get insight for your workload |
+
+7. Once you've made it this far, a pop-up prompting you to reinstall will appear at the top of the screen, click on it and reinstall the Slack App on the target channel. Because you modified the permission of Slack App token in step 4.
+8. Join the Slack App to the target channel. To add, open the desired channel and click on the channel name. Select [Integrations] and then click [Add an app]. Find FA2 (or the name of the app you have registered) and click the [Add] button. Follow the instructions that appear to install the app.
 
 ### Testing
 
