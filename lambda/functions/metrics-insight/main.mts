@@ -7,7 +7,7 @@ import { Language } from "../../../parameter.js";
 import logger from "../../lib/logger.js"; 
 
 export const handler: Handler = async (event: {
-  question: string;
+  query: string;
   startDate: string;
   endDate: string;
   channelId?: string;
@@ -15,7 +15,7 @@ export const handler: Handler = async (event: {
   // Event parameters
   logger.info(`Event: ${JSON.stringify(event)}`);
   const {
-    question,
+    query,
     startDate,
     endDate,
     channelId
@@ -31,7 +31,7 @@ export const handler: Handler = async (event: {
   const region = process.env.AWS_REGION;
   const token = await getSecret(slackAppTokenKey);
   const messageClient = new MessageClient(token!.toString(), lang);
-  const prompt = new Prompt(lang, architectureDescription, question);
+  const prompt = new Prompt(lang, architectureDescription, query);
 
   // Check required variables.
   if (!modelId || !region || !channelId ) {
@@ -50,7 +50,7 @@ export const handler: Handler = async (event: {
   try {
     // Generate a query for getMetricData API
     const metrics = await listMetrics();
-    const metricSelectionPrompt = prompt.createSelectMetricsForInsightPrompt(JSON.stringify(metrics))
+    const metricSelectionPrompt = prompt.createSelectMetricsForInsightPrompt(JSON.stringify(metrics), (new Date(endDate)).getDate() - (new Date(startDate)).getDate())
     const metricDataQuery = await generateMetricDataQuery(metricSelectionPrompt);
 
     const results = await queryToCWMetrics(startDate, endDate, metricDataQuery, "CWMetrics");

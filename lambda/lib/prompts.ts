@@ -92,17 +92,32 @@ export class Prompt {
   };
 
   public createMetricsInsightPrompt(metrics: string){
-    return `あなたは、AWS上で稼働するワークロードを監視・運用するエージェントです。
+    return this.language === "ja" ?
+    `あなたは、AWS上で稼働するワークロードを監視・運用するエージェントです。
     ${this.architectureDescription}
     運用管理者から${this.query}という依頼が来ています。
     <metrics>タグに与えられたメトリクスをもとに、ユーザからの依頼に対応してください。
     また、対応するために根拠としたメトリクスについては、メトリクス名を列挙して後から管理者がそのメトリクスを参照しやすくしてください。
+    必ず日本語で答えてください。
 
     <metrics>
     ${metrics}
     </metrics>
 
     対応結果：
+    `:
+    `You are an agent that monitors and operates workloads running on AWS.
+    The architecture of your workload is ${this.architectureDescription}.
+    Currently, the operations manager asked us about ${this.query}.
+    You should check the <metrics> tags, Based on metrics sandwiched between tags, and answer an asked question.
+    Also, you should show the list of metric names when you checked them to answer the question.
+    You have to answer it in English.
+
+    <metrics>
+    ${metrics}
+    </metrics>
+
+    Answer:
     `;
   }
 
@@ -151,7 +166,7 @@ export class Prompt {
   }
 
   // To create the prompt for metrics selection
-  public createSelectMetricsForInsightPrompt(metrics: string){
+  public createSelectMetricsForInsightPrompt(metrics: string, days: number){
     return `あなたは、AWS上で稼働するワークロードを監視・運用するエージェントです。
     ${this.architectureDescription}
     運用管理者から${this.query}という依頼が来ています。
@@ -179,7 +194,7 @@ export class Prompt {
               },
             ]
           },
-          "Period": 60, // 変更しない
+          "Period": ${3600 + Math.floor(days / 5) * 3600}, // 変更しない
           "Stat": "Average" // 変更しない
         }
       },

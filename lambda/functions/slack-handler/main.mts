@@ -3,7 +3,7 @@ import {
   APIGatewayProxyEvent,
   Context,
 } from "aws-lambda";
-import { App, AwsLambdaReceiver, BlockAction, SayArguments } from "@slack/bolt";
+import { App, AwsLambdaReceiver, BlockAction, RespondArguments, SayArguments } from "@slack/bolt";
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { format, sub } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
@@ -48,7 +48,7 @@ const app = new App({
   receiver: awsLambdaReceiver
 });
 
-const messageClient = new MessageClient(token, "ja")
+const messageClient = new MessageClient(token, lang); 
 
 app.event("app_home_opened", async ({event, client}) => {
  
@@ -121,7 +121,7 @@ app.action("submit_button", async ({ body, ack, respond }) => {
       funcName
     );
 
-    if (res.StatusCode! > 400) {
+    if (res.StatusCode! >= 400) {
       throw new Error("Failed to invoke lambda function");
     }
 
@@ -129,38 +129,57 @@ app.action("submit_button", async ({ body, ack, respond }) => {
     await respond({
       blocks: messageClient.createMessageBlock(
         lang === "ja"
-          ? `リクエストを受け付けました。分析完了までお待ちください。\nリクエスト内容: ${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})} `
-          : `Reveived your request. Please wait... \nInput parameters: ${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})} `,
+          ? `リクエストを受け付けました。分析完了までお待ちください。\nリクエスト内容: \`\`\`${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})}\`\`\` `
+          : `Reveived your request. Please wait... \nInput parameters: \`\`\`${JSON.stringify({errorDescription, startDate, startTime, endDate, endTime})}\`\`\` `,
       ),
       replace_original: true,
-    });
-  } catch (err) {
+    } as RespondArguments);
+  } catch (error) {
     // Send result to Slack
-    logger.error(JSON.stringify(err));
+    logger.error(JSON.stringify(error));
     await respond({
       blocks: messageClient.createErrorMessageBlock(),
       replace_original: true,
-    });
+    } as RespondArguments);
   }
   return;
 });
 
-app.command('/insight', async ({ command, ack, respond }) => {
-  // コマンドリクエストを確認
+app.command('/insight', async ({ client, body, ack }) => {
+  // Ack the request of insight command
   await ack();
 
+  try {
+    const result = await client.views.open({
+      trigger_id: body.trigger_id,
+      view: messageClient.createInsightCommandFormView()
+    });
+    logger.info(JSON.stringify(result));
+  } catch (error) {
+    logger.error(JSON.stringify(error));
+  }
+});
+
+app.view('view_insight', async ({ ack, view, client, body }) => {
+  // Ack the request of view_insight
+  await ack();
+  
+  // Get the form data
+  const query = view['state']['values']['input_query']['query']['value'];
+  const duration = view['state']['values']['input_duration']['duration']['selected_option']!['value'];
+
+  // Convert from duration to datetime
   const now = new Date();
   const nowItnTime = fromZonedTime(now, "Asia/Tokyo");
-  const pastItnTime = fromZonedTime(sub(now,{days: 1}), "Asia/Tokyo");
-
+  const pastItnTime = fromZonedTime(sub(now,{days: Number(duration)}), "Asia/Tokyo");
   try{
     // Invoke backend lambda
     const res = await invokeAsyncLambdaFunc(
       JSON.stringify({
-        question: command.text,
+        query: query,
         startDate: pastItnTime.toISOString(),
         endDate: nowItnTime.toISOString(),
-        channelId: command.channel_id,
+        channelId: body.user.id 
       }),
       metricsInsightFunction
     );
@@ -170,20 +189,20 @@ app.command('/insight', async ({ command, ack, respond }) => {
     }
 
     // Send the message to notify the completion of receiving request.
-    await respond({
+    await client.chat.postMessage({
       blocks: messageClient.createMessageBlock(
         lang === "ja"
-          ? `質問：${command.text}を受け付けました。 FA2の回答をお待ちください。`
-          : `FA2 received your question: ${command.text}. Please wait for its answer..`,
+          ? `質問：${query}を、${duration}日分のメトリクスで確認します。FA2の回答をお待ちください。`
+          : `FA2 received your question: ${query} with the metric data of ${duration} days. Please wait for its answer..`,
       ),
-      replace_original: true,
+      channel: body.user.id
     });
-  } catch (err) {
+  } catch (error) {
     // Send result to Slack
-    logger.error(JSON.stringify(err));
-    await respond({
+    logger.error(JSON.stringify(error));
+    await client.chat.postMessage({
       blocks: messageClient.createErrorMessageBlock(),
-      replace_original: true,
+      channel: body.user.id
     });
   }
 
