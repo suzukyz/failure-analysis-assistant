@@ -1,6 +1,6 @@
 import { Handler } from "aws-lambda";
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
-import { split } from "lodash";
+import { random, split } from "lodash";
 import pLimit from "p-limit";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
@@ -17,7 +17,7 @@ import { Prompt } from "../../lib/prompts.js";
 import { MessageClient } from "../../lib/message-client.js";
 import { Language } from "../../../parameter.js";
 import logger from "../../lib/logger.js"; 
-import { convertMermaidToImage } from "../../lib/puppeteer-mermaid.js";
+import { convertMermaidToImage } from "../../lib/puppeteer.js";
 
 export const handler: Handler = async (event: {
   errorDescription: string;
@@ -226,7 +226,8 @@ export const handler: Handler = async (event: {
       throw new Error("Failed to create Mermaid image")
     }
 
-    await messageClient.sendPngImage(png, channelId, threadTs);
+    await messageClient.sendFile(png, `fa2-output-image-${Date.now()}${random(100000000,999999999,false)}.png`, channelId, threadTs);
+        
     // end of output image task
     /* ****** */
 

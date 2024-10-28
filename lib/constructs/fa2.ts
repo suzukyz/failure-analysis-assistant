@@ -26,12 +26,13 @@ interface FA2Props {
   databaseName?: string;
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
-  topicArn?: string;
+  detectorId?: string;
 }
 
 export class FA2 extends Construct {
   backendRole: iam.Role;
   metricsInsightRole: iam.Role;
+  findingsReportRole: iam.Role;
   slackHandlerRole: iam.Role;
   slackRestApi: apigateway.RestApi;
   constructor(scope: Construct, id: string, props: FA2Props) {
@@ -451,6 +452,74 @@ export class FA2 extends Construct {
       // Give access permission from slack handler to metrics insight function
       slackHandler.addEnvironment("METRICS_INSIGHT_NAME", metricsInsightFunction.functionName)
       metricsInsightFunction.grantInvoke(slackHandler);
+    }
+
+    // For the command of findings report
+    if(props.slackCommands.findingsReport && props.detectorId){
+      const findingsReportRole = new iam.Role(this, "FindingsReportRole", {
+        assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+        managedPolicies: [
+          // To put lambda logs to CloudWatch Logs
+          iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "service-role/AWSLambdaBasicExecutionRole",
+          ),
+          iam.ManagedPolicy.fromAwsManagedPolicyName("AWSHealthFullAccess"),
+          iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "AmazonGuardDutyReadOnlyAccess"
+          ),
+          iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "AWSSecurityHubReadOnlyAccess"
+          )
+        ],
+        inlinePolicies: {
+          // Use LLM in Bedrock
+          bedrock: new iam.PolicyDocument({
+            statements: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ["bedrock:InvokeModel"],
+                resources: [
+                  `arn:aws:bedrock:${Stack.of(this).region}::foundation-model/${
+                    props.modelId
+                  }`
+                ],
+              }),
+            ],
+          }),
+        },
+      });
+      this.findingsReportRole = findingsReportRole;
+
+      const findingsReportFunction = new lambdaNodejs.NodejsFunction(this, "FindingsReport", {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        memorySize: 2048,
+        timeout: Duration.seconds(600),
+        entry: path.join(__dirname, "../../lambda/functions/findings-report/main.mts"),
+        environment: {
+          MODEL_ID: props.modelId,
+          LANG: props.language,
+          SLACK_APP_TOKEN_KEY: props.slackAppTokenKey,
+          ARCHITECTURE_DESCRIPTION: props.architectureDescription,
+          DETECTOR_ID: props.detectorId
+        },
+        layers: [converterLayer],
+        bundling: {
+          minify: true,
+          externalModules: ["@aws-sdk/*", "@sparticuz/chromium"],
+          tsconfig: path.join(__dirname, "../../tsconfig.json"),
+          format: lambdaNodejs.OutputFormat.ESM,
+          banner:
+            // __dirname and __filename is necessary to use @sparticuz/chromium in *.mts file
+            "import { createRequire } from 'module';import { fileURLToPath } from 'node:url';import { dirname } from 'path';const require = createRequire(import.meta.url);const __filename = fileURLToPath(import.meta.url);const __dirname = dirname(__filename);",
+        },
+        role: findingsReportRole,
+      });
+      // Give access permission of slack token from metrics insight function
+      token.grantRead(findingsReportFunction);
+
+      // Give access permission from slack handler to metrics insight function
+      slackHandler.addEnvironment("FINDINGS_REPORT_NAME", findingsReportFunction.functionName)
+      findingsReportFunction.grantInvoke(slackHandler); 
     }
   }
 }

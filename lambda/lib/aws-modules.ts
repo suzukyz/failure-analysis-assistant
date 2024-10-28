@@ -30,6 +30,18 @@ import {
   XRayClient
 } from "@aws-sdk/client-xray";
 import {
+  GuardDutyClient,
+  GetFindingsCommand,
+  GetFindingsCommandInput,
+  ListFindingsCommandInput,
+  ListFindingsCommand,
+} from "@aws-sdk/client-guardduty";
+import {
+  SecurityHubClient,
+  GetFindingsCommand as GetSecurityHubFindingsCommand,
+  GetFindingsCommandInput as GetSecurityHubFindingsCommandInput,
+} from "@aws-sdk/client-securityhub";
+import {
   BedrockRuntimeClient,
   ConverseCommand,
   ConverseCommandInput,
@@ -264,6 +276,82 @@ export async function queryToXray(
 
   logger.info(`QueryToXRay Output: ${JSON.stringify(traces)}`);
   return { key: outputKey, value: traces };
+}
+
+export async function listGuardDutyFindings(detectorId: string, outputKey: string) {
+  logger.info(`listGuardDutyFindings input: ${detectorId}, ${outputKey}`)
+  const guarddutyClient = new GuardDutyClient();
+
+  let listFindingsCommandInput: ListFindingsCommandInput = {
+    DetectorId: detectorId,
+    FindingCriteria: {
+      Criterion: {
+        severity: {
+          GreaterThanOrEqual: 4.0,
+        },
+      },
+    },
+  };
+  let listFindingsCommand = new ListFindingsCommand(listFindingsCommandInput);
+  let listFindingsResponse = await guarddutyClient.send(listFindingsCommand);
+  const findingIds = listFindingsResponse.FindingIds
+    ? listFindingsResponse.FindingIds
+    : [];
+
+  while (listFindingsResponse.NextToken) {
+    listFindingsCommandInput = {
+      ...listFindingsCommandInput,
+      NextToken: listFindingsResponse.NextToken,
+    };
+
+    listFindingsCommand = new ListFindingsCommand(listFindingsCommandInput);
+    listFindingsResponse = await guarddutyClient.send(listFindingsCommand);
+    if (listFindingsResponse.FindingIds)
+      findingIds.push(...listFindingsResponse.FindingIds);
+  }
+
+  const input: GetFindingsCommandInput = {
+    DetectorId: detectorId,
+    FindingIds: findingIds,
+  };
+  const getFindingsResponse = await guarddutyClient.send(new GetFindingsCommand(input));
+  const findings = getFindingsResponse.Findings
+    ? getFindingsResponse.Findings
+    : [];
+
+  logger.info(`listGuardDutyFindings output(${findings.length}): ${JSON.stringify(findings)}`);
+  return { key: outputKey, value: findings };
+}
+
+export async function listSecurityHubFindings(outputKey: string) {
+  logger.info(`listSecurityFindings input: ${outputKey}`)
+  const securityHubClient = new SecurityHubClient();
+
+  const getSecurityHubFindingsInput: GetSecurityHubFindingsCommandInput = {
+    // Refer to configuration of Baseline Environment on AWS
+    // https://github.com/aws-samples/baseline-environment-on-aws/blob/ef33275e8961f4305509eccfb7dc8338407dbc9f/usecases/blea-gov-base-ct/lib/construct/detection.ts#L334
+    Filters: {
+      SeverityLabel: [
+        { Comparison: "EQUALS", Value: "CRITICAL" },
+        { Comparison: "EQUALS", Value: "HIGH" },
+        { Comparison: "EQUALS", Value: "MEDIUM" },
+      ],
+      ComplianceStatus: [{ Comparison: "EQUALS", Value: "FAILED" }],
+      WorkflowStatus: [
+        { Comparison: "EQUALS", Value: "NEW" },
+        { Comparison: "EQUALS", Value: "NOTIFIED" },
+      ],
+      RecordState: [{ Comparison: "EQUALS", Value: "ACTIVE" }],
+    },
+  };
+  const getSecurityHubFindingsCommand = new GetSecurityHubFindingsCommand(
+    getSecurityHubFindingsInput
+  );
+
+  const response = await securityHubClient.send(getSecurityHubFindingsCommand);
+  logger.info(`listSecurityFindings output(${response.Findings!.length}): ${JSON.stringify(response.Findings)}`);
+
+  return { key: outputKey, value: response.Findings};
 }
 
 export async function converse(

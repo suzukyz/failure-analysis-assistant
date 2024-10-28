@@ -16,6 +16,7 @@ import logger from "../../lib/logger.js";
 const lang: Language = process.env.LANG ? (process.env.LANG as Language) : "en";
 const funcName = process.env.FUNCTION_NAME!;
 const metricsInsightFunction = process.env.METRICS_INSIGHT_NAME!;
+const findingsReportFunction = process.env.FINDINGS_REPORT_NAME!;
 const slackAppTokenKey = process.env.SLACK_APP_TOKEN_KEY!;
 const slackSigningSecretKey = process.env.SLACK_SIGNING_SECRET_KEY!;
 
@@ -166,7 +167,7 @@ app.view('view_insight', async ({ ack, view, client, body }) => {
       metricsInsightFunction
     );
 
-    if (res.StatusCode! > 400) {
+    if (res.StatusCode! >= 400) {
       throw new Error("Failed to invoke lambda function");
     }
 
@@ -188,6 +189,36 @@ app.view('view_insight', async ({ ack, view, client, body }) => {
     });
   }
   return;
+});
+
+app.command('/findings-report', async ({ client, body, ack }) => {
+  // Ack the request of insight command
+  await ack();
+
+  try {
+    const res = await invokeAsyncLambdaFunc(
+      JSON.stringify({
+        channelId: body.channel_id 
+      }),
+      findingsReportFunction
+    );
+
+    if (res.StatusCode! >= 400) {
+      throw new Error("Failed to invoke lambda function");
+    }
+
+    // Send the message to notify the completion of receiving request.
+    await client.chat.postMessage({
+      blocks: messageClient.createMessageBlock(
+        lang === "ja"
+          ? `Findingsのレポート作成依頼を受け付けました。FA2の回答をお待ちください。`
+          : `FA2 received your request to create a report of findings. Please wait for its answer..`,
+      ),
+      channel: body.channel_id
+    });
+  } catch (error) {
+    logger.error(JSON.stringify(error));
+  }
 });
 
 export const handler = async (

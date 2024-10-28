@@ -17,6 +17,7 @@ interface FA2StackProps extends StackProps {
   databaseName?: string;
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
+  detectorId?: string;
 }
 
 export class FA2Stack extends Stack {
@@ -37,6 +38,7 @@ export class FA2Stack extends Stack {
       databaseName: props.databaseName,
       albAccessLogTableName: props.albAccessLogTableName,
       cloudTrailLogTableName: props.cloudTrailLogTableName,
+      detectorId: props.detectorId,
     });
     
     // ----- CDK Nag Suppressions -----
@@ -55,6 +57,21 @@ export class FA2Stack extends Stack {
 
     if(props.slackCommands.insight){
       NagSuppressions.addResourceSuppressions(fa2.metricsInsightRole, [
+        {
+          id: "AwsSolutions-IAM4",
+          reason:
+            "This managed role is for logging and Using it keeps simple code instead of customer managed policies.",
+        },
+        {
+          id: "AwsSolutions-IAM5",
+          reason:
+            "CloudWatch need * resources to do these API actions.",
+        },
+      ]);
+    }
+
+    if(props.slackCommands.findingsReport && props.detectorId){
+      NagSuppressions.addResourceSuppressions(fa2.findingsReportRole, [
         {
           id: "AwsSolutions-IAM4",
           reason:

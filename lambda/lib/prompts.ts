@@ -119,6 +119,65 @@ export class Prompt {
     `;
   }
 
+  public createFindingsReportPrompt(secHubFindings?: string, guarddutyFindings?: string){
+       return this.language === "ja" ?
+    `あなたは、AWS上で稼働するワークロードを監視・運用するエージェントです。
+    ${this.architectureDescription}
+    <findings>タグに与えられたSecurity HubとGuardDutyのFingindsを、与えられたMarkdownのフォーマットで整理し、レポートとして<OutputReport>タグの間に出力してください。
+    レポートを読んだ運用管理者がアクションを取りやすくするため、findingがなぜ発生していて、どのようなリスクがあるのか、わかりやすく説明してください。
+    必ず日本語で答えてください。フォーマットのようなMarkdown以外の出力は絶対にしてはいけません。
+
+    <findings>
+      <securtiyhub>${secHubFindings}</securityhub>
+      <guardduty>${guarddutyFindings}</guardduty>
+    </findings>
+
+    <レポートのMarkdownフォーマット>
+    # 全体サマリ:
+
+    // 全てのFindingsを横断的にチェックした時のサマリを記載する
+
+    # Security Hub の Findings
+
+    ---
+    - タイトル
+    - AWS アカウント
+    - 発生日時
+    - 重要度
+    - 概要
+    - 解説
+    ---
+    // 上記を1セットとし、検知された分だけ繰り返す
+
+    # GuardDuty の Findings
+
+    ---
+    - タイトル
+    - AWS アカウント
+    - 発生日時
+    - 重要度
+    - 概要
+    - 解説
+    ---
+    // 上記を1セットとし、検知された分だけ繰り返す
+
+    </レポートのフォーマット>
+
+    レポート：
+    `:
+    `You are an agent that monitors and operates workloads running on AWS.
+    The architecture of your workload is ${this.architectureDescription}.
+    You should check the <metrics> tags, Based on metrics sandwiched between tags, and answer an asked question.
+    Also, you should show the list of metric names when you checked them to answer the question.
+    You have to answer it in English.
+
+    <metrics>
+    </metrics>
+
+    Answer:
+    `; 
+  }
+
   // To create the prompt for metrics selection
   public createSelectMetricsForFailureAnalysisPrompt(query: string, metrics: string){
     return `あなたは、AWS上で稼働するワークロードを監視・運用するエージェントです。
