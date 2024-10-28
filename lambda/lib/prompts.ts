@@ -133,7 +133,7 @@ export class Prompt {
     </findings>
 
     <レポートのMarkdownフォーマット>
-    # 全体サマリ:
+    # 全体サマリ
 
     // 全てのFindingsを横断的にチェックした時のサマリを記載する
 
@@ -166,15 +166,48 @@ export class Prompt {
     レポート：
     `:
     `You are an agent that monitors and operates workloads running on AWS.
-    The architecture of your workload is ${this.architectureDescription}.
-    You should check the <metrics> tags, Based on metrics sandwiched between tags, and answer an asked question.
-    Also, you should show the list of metric names when you checked them to answer the question.
-    You have to answer it in English.
+    ${this.architectureDescription}
+    Organize the <findings> Security Hub and GuardDuty findings given to the tag in the given Markdown format and output them between the <OutputReport>  tags as a report.
+ To make it easier for operations managers who read the report to take action, please explain why finding is occurring and what risks there are.
+ Please be sure to answer in English. You should never output anything other than Markdown, such as formatting.
 
-    <metrics>
-    </metrics>
+    <findings>
+      <securtiyhub>${secHubFindings}</securityhub>
+      <guardduty>${guarddutyFindings}</guardduty>
+    </findings>
 
-    Answer:
+    <MarkdownFormatOfReport>
+    # Summary
+
+    // Describe a summary of when all Findings have been checked in a cross-sectional manner
+
+    # Findings of Security Hub
+
+    ---
+    - Title
+    - AWS Account
+    - Date
+    - Severity
+    - Summary
+    - Explanation by LLM
+    ---
+    // Set the above to 1 set and repeat for as long as detected
+
+    # Findings of GuardDuty
+
+    ---
+    - Title
+    - AWS Account
+    - Date
+    - Severity
+    - Summary
+    - Explanation by LLM
+    ---
+    // Set the above to 1 set and repeat for as long as detected
+
+    </MarkdownFormatOfReport>
+
+    Report:
     `; 
   }
 

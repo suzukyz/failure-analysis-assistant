@@ -334,7 +334,6 @@ export async function listSecurityHubFindings(outputKey: string) {
       SeverityLabel: [
         { Comparison: "EQUALS", Value: "CRITICAL" },
         { Comparison: "EQUALS", Value: "HIGH" },
-        { Comparison: "EQUALS", Value: "MEDIUM" },
       ],
       ComplianceStatus: [{ Comparison: "EQUALS", Value: "FAILED" }],
       WorkflowStatus: [
