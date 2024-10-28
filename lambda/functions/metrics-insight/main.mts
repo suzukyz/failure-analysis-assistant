@@ -31,7 +31,7 @@ export const handler: Handler = async (event: {
   const region = process.env.AWS_REGION;
   const token = await getSecret(slackAppTokenKey);
   const messageClient = new MessageClient(token!.toString(), lang);
-  const prompt = new Prompt(lang, architectureDescription, query);
+  const prompt = new Prompt(lang, architectureDescription);
 
   // Check required variables.
   if (!modelId || !region || !channelId ) {
@@ -50,13 +50,13 @@ export const handler: Handler = async (event: {
   try {
     // Generate a query for getMetricData API
     const metrics = await listMetrics();
-    const metricSelectionPrompt = prompt.createSelectMetricsForInsightPrompt(JSON.stringify(metrics), (new Date(endDate)).getDate() - (new Date(startDate)).getDate())
+    const metricSelectionPrompt = prompt.createSelectMetricsForInsightPrompt(query, JSON.stringify(metrics), (new Date(endDate)).getDate() - (new Date(startDate)).getDate())
     const metricDataQuery = await generateMetricDataQuery(metricSelectionPrompt);
 
     const results = await queryToCWMetrics(startDate, endDate, metricDataQuery, "CWMetrics");
 
     const metricsInsightPrompt = 
-        prompt.createMetricsInsightPrompt(JSON.stringify(results.value));
+        prompt.createMetricsInsightPrompt(query, JSON.stringify(results.value));
 
     const answer = await converse(metricsInsightPrompt);
     if(!answer) throw new Error("No response from LLM");

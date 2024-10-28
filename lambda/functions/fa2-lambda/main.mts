@@ -57,7 +57,7 @@ export const handler: Handler = async (event: {
 
   const token = await getSecret(slackAppTokenKey);
   const messageClient = new MessageClient(token!.toString(), lang);
-  const prompt = new Prompt(lang, architectureDescription, errorDescription);
+  const prompt = new Prompt(lang, architectureDescription);
 
   // Check required variables.
   if (!modelId || !cwLogsQuery || !logGroups || !region || !channelId || !threadTs) {
@@ -77,7 +77,7 @@ export const handler: Handler = async (event: {
   try {
     // Generate a query for getMetricData API
     const metrics = await listMetrics();
-    const metricSelectionPrompt = prompt.createSelectMetricsForFailureAnalysisPrompt(JSON.stringify(metrics));
+    const metricSelectionPrompt = prompt.createSelectMetricsForFailureAnalysisPrompt(errorDescription, JSON.stringify(metrics));
     const metricDataQuery = await generateMetricDataQuery(metricSelectionPrompt);
 
     // Send query to each AWS APIs in parallel.
@@ -147,6 +147,7 @@ export const handler: Handler = async (event: {
     // Prompt
     const failureAnalysisPrompt =
       prompt.createFailureAnalysisPrompt(
+        errorDescription,
         Prompt.getStringValueFromQueryResult(
           results,
           "ApplicationLogs",
@@ -213,7 +214,7 @@ export const handler: Handler = async (event: {
     // Additional process. It shows the root cause on the image.
     // If you don't need it, please comment out below.
     const outputImageResponse = await converse(
-      prompt.createImageGenerationPrompt(answer), 
+      prompt.createImageGenerationPrompt(errorDescription, answer), 
       'anthropic.claude-3-5-sonnet-20240620-v1:0', 
     )
     const mermaidSyntax = split(split(outputImageResponse, '<OutputMermaidSyntax>')[1], '</OutputMermaidSyntax>')[0];
