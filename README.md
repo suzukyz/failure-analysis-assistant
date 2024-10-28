@@ -18,6 +18,12 @@ AWS Summit Japan 2024 のブースで公開したデモのサンプルコード�
 機能の動作イメージは、[[オプション]メトリクス分析支援](#オプションメトリクス分析支援) を参照ください。
 **こちらの機能はオプション**となりますので、有効にする場合は、[パラメータ設定](#パラメータ設定)や[[オプション]メトリクス分析支援機能のための Slack App の設定](#オプションメトリクス分析支援機能のための-slack-app-の設定)をご確認ください。
 
+**Findings レポート**
+
+Security Hub と GuardDuty の Findings を生成 AI が解説するレポートを作成する機能を追加しました。
+機能の動作イメージは、[[オプション]Findings レポート機能](#オプションfindings-レポート機能) を参照ください。
+**こちらの機能はオプション**となりますので、有効にする場合は、[パラメータ設定](#パラメータ設定)や[[オプション]Findings レポート機能のための Slack App の設定](#オプションfindings-レポート機能のための-slack-app-の設定)をご確認ください。
+
 ## Branches
 
 - [`main`](https://github.com/aws-samples/failure-analysis-assistant) - 本ブランチです。Slack App を利用したバージョンです。AWS Summit Japan 2024 ではこちらを展示しました。
@@ -116,7 +122,9 @@ export const devParameter: AppParameter = {
   xrayTrace: true,
   slackCommands: {
     insight: true,
-  }
+    findingsReport: true,
+  },
+  detectorId: "xxxxxxxxxxxxxxx"
 };
 ```
 
@@ -138,7 +146,8 @@ export const devParameter: AppParameter = {
 | `albAccessLogTableName`  | `"alb_access_logs"`                                                       | ALB のアクセスログのテーブル名。今回のサンプルでは、Athena で ALB のアクセスログのログ検索を実装したため、利用する場合 ALB のアクセスログテーブル名を指定します                  |
 | `cloudTrailLogTableName` | `"cloud_trail_logs"`                                                      | AWS CloudTrail のログのテーブル名。今回のサンプルでは、Athena で CloudTrail の監査ログのログ検索を実装したため、利用する場合 CloudTrail のログテーブル名を指定します             |
 | `xrayTrace`              | `true`                                                                    | 分析対象に AWS X-Ray のトレース情報を含めるかどうか決めるためのパラメータ                                                                                                        |
-| `slackCommands`              | `{"insight": true}`                                                                    | `insight` コマンドに関連するリソースのデプロイを有効にします                                                                                                       |
+| `slackCommands`              | `{"insight": true, "findingsReport": true}`                                                                    | `insight` や `findings-report` コマンドに関連するリソースのデプロイを有効にします                                                                                                       |
+| `detectorId`              | `"xxxxxxxxxxx"`                                                                    | `findings-report` を利用する場合には必須です。アカウントで定義されている `detectorId` を設定してください                                                                                                       |
 
 #### プロンプトの変更
 
@@ -187,8 +196,22 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
       | Request URL       | Request URL と同じ URL         |
       | Short Description | Get insight for your workload |
 
-2. 左メニューの [App Home] をクリックし、[Message Tab] にある [Allow users to send Slash commands and messages from the messages tab] にチェックを入れます。
+2. 左メニューの [App Home] をクリックし、[Message Tab] にある [Allow users to send Slash commands and messages from the messages tab] にチェックを入れます
    1. これで、Slack App の DM 欄でメトリクス分析支援の実行・結果受領がしやすくなります
+
+#### [オプション]Findings レポート機能のための Slack App の設定
+
+1. 左メニューの[Slash Commands]をクリックし、[Create New Command]をクリックします
+   1. 以下の表のように値を入力し、すべて入力したら、[Save]をクリックします
+
+      | 項目名             | 値                            |
+      | ----------------- | ----------------------------- |
+      | Command           | /findings-report                      |
+      | Request URL       | Request URL と同じ URL         |
+      | Short Description | Create report about findings of Security Hub and GuardDuty |
+
+2. 左メニューの [App Home] をクリックし、[Message Tab] にある [Allow users to send Slash commands and messages from the messages tab] にチェックを入れます
+   1. メトリクス分析支援機能を有効にしている場合、この手順は実施不要です
 
 ### テスト
 
@@ -231,6 +254,13 @@ Slack のチャット欄に、`/insight` と入力、送信すると、モーダ
 ![insight-form](./docs/images/ja/fa2-insight-form.png)
 
 ![query-about-ecs-performance](./docs/images/ja/fa2-query-about-ecs-performance.png)
+
+#### [オプション]Findings レポート機能
+
+Slack のチャット欄に、`/findings-report` と入力、送信すると、リクエストを受け付けたメッセージが表示されます。
+1-2分ほどで、 Findings のレポートの PDF がアップロードされます。
+
+![findings-report](./docs/images/ja/fa2-findings-report.png)
 
 ## リソースの削除
 
