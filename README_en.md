@@ -262,6 +262,8 @@ In about 1-2 minutes, a PDF of the Findings report will be uploaded.
 
 ![findings-report](./docs/images/en/fa2-findings-report.png)
 
+The findings are gotten from `listGuardDutyFindings()` and `listSecurityHubFindings()` functions in `lambda/lib/aws-modules.ts`.
+Please modify these functions if you want to change the scope of these findings.
 
 ## Delete deployed resources
 

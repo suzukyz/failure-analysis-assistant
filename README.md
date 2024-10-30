@@ -262,6 +262,9 @@ Slack のチャット欄に、`/findings-report` と入力、送信すると、�
 
 ![findings-report](./docs/images/ja/fa2-findings-report.png)
 
+レポートで出力する Findings は、`lambda/lib/aws-modules.ts` の `listGuardDutyFindings()` と `listSecurityHubFindings()` の関数で取得されています。
+Findings の取得対象を変更したい場合は、これら関数を修正ください。
+
 ## リソースの削除
 
 以下のコマンドを実行し、デプロイしたリソースを削除してください。
