@@ -150,6 +150,7 @@ export class FA2 extends Construct {
       layers: [converterLayer],
       bundling: {
         minify: true,
+        keepNames: true,
         externalModules: ["@aws-sdk/*", "@sparticuz/chromium"],
         tsconfig: path.join(__dirname, "../../tsconfig.json"),
         format: lambdaNodejs.OutputFormat.ESM,
@@ -338,6 +339,7 @@ export class FA2 extends Construct {
         role: slackHandlerRole,
         bundling: {
           minify: true,
+          keepNames: true,
           mainFields: ["module", "main"],
           // To solve warning of esbuild
           externalModules: ["@aws-sdk/*", "bufferutil", "utf-8-validate"],
@@ -438,6 +440,7 @@ export class FA2 extends Construct {
         },
         bundling: {
           minify: true,
+          keepNames: true,
           externalModules: ["@aws-sdk/*"],
           tsconfig: path.join(__dirname, "../../tsconfig.json"),
           format: lambdaNodejs.OutputFormat.ESM,
@@ -505,6 +508,7 @@ export class FA2 extends Construct {
         layers: [converterLayer],
         bundling: {
           minify: true,
+          keepNames: true,
           externalModules: ["@aws-sdk/*", "@sparticuz/chromium"],
           tsconfig: path.join(__dirname, "../../tsconfig.json"),
           format: lambdaNodejs.OutputFormat.ESM,
