@@ -1,7 +1,7 @@
 import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { FA2 } from "../constructs/fa2";
-import { Language, SlackCommands } from "../../parameter";
+import { Language, SlashCommands } from "../../parameter";
 import { NagSuppressions } from "cdk-nag";
 
 interface FA2StackProps extends StackProps {
@@ -13,7 +13,7 @@ interface FA2StackProps extends StackProps {
   cwLogLogGroups: string[];
   cwLogsInsightQuery: string;
   xrayTrace: boolean;
-  slackCommands: SlackCommands;
+  slashCommands: SlashCommands;
   databaseName?: string;
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
@@ -34,7 +34,7 @@ export class FA2Stack extends Stack {
       cwLogLogGroups: props.cwLogLogGroups,
       cwLogsInsightQuery: props.cwLogsInsightQuery,
       xrayTrace: props.xrayTrace,
-      slackCommands: props.slackCommands,
+      slashCommands: props.slashCommands,
       databaseName: props.databaseName,
       albAccessLogTableName: props.albAccessLogTableName,
       cloudTrailLogTableName: props.cloudTrailLogTableName,
@@ -55,7 +55,7 @@ export class FA2Stack extends Stack {
       },
     ]);
 
-    if(props.slackCommands.insight){
+    if(props.slashCommands.insight){
       NagSuppressions.addResourceSuppressions(fa2.metricsInsightRole, [
         {
           id: "AwsSolutions-IAM4",
@@ -70,7 +70,7 @@ export class FA2Stack extends Stack {
       ]);
     }
 
-    if(props.slackCommands.findingsReport && props.detectorId){
+    if(props.slashCommands.findingsReport && props.detectorId){
       NagSuppressions.addResourceSuppressions(fa2.findingsReportRole, [
         {
           id: "AwsSolutions-IAM4",

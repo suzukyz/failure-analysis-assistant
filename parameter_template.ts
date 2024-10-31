@@ -1,7 +1,7 @@
 import { Environment } from "aws-cdk-lib";
 
 export type Language = "ja" | "en";
-export type SlackCommands = {
+export type SlashCommands = {
   insight: boolean;
   findingsReport: boolean;
 };
@@ -20,7 +20,7 @@ export interface AppParameter {
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
   xrayTrace: boolean;
-  slackCommands: SlackCommands;
+  slashCommands: SlashCommands;
   detectorId?: string;
 }
 
@@ -46,7 +46,7 @@ export const devParameter: AppParameter = {
   albAccessLogTableName: "alb_access_logs",
   cloudTrailLogTableName: "cloud_trail_logs",
   xrayTrace: true,
-  slackCommands: {
+  slashCommands: {
     insight: false,
     findingsReport: false,
   },

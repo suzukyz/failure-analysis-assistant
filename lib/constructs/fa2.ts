@@ -11,7 +11,7 @@ import {
 import { Construct } from "constructs";
 import * as path from "path";
 import { Bucket } from "./bucket";
-import { Language, SlackCommands } from "../../parameter";
+import { Language, SlashCommands } from "../../parameter";
 
 interface FA2Props {
   language: Language;
@@ -22,7 +22,7 @@ interface FA2Props {
   cwLogLogGroups: string[];
   cwLogsInsightQuery: string;
   xrayTrace: boolean;
-  slackCommands: SlackCommands;
+  slashCommands: SlashCommands;
   databaseName?: string;
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
@@ -379,7 +379,7 @@ export class FA2 extends Construct {
     );
 
     // For the command of metrics insight
-    if(props.slackCommands.insight){
+    if(props.slashCommands.insight){
       const metricsInsightRole = new iam.Role(this, "MetricsInsightRole", {
         assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
         managedPolicies: [
@@ -455,7 +455,7 @@ export class FA2 extends Construct {
     }
 
     // For the command of findings report
-    if(props.slackCommands.findingsReport && props.detectorId){
+    if(props.slashCommands.findingsReport && props.detectorId){
       const findingsReportRole = new iam.Role(this, "FindingsReportRole", {
         assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
         managedPolicies: [
