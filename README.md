@@ -198,6 +198,7 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
 
 2. 左メニューの [App Home] をクリックし、[Message Tab] にある [Allow users to send Slash commands and messages from the messages tab] にチェックを入れます
    1. これで、Slack App の DM 欄でメトリクス分析支援の実行・結果受領がしやすくなります
+3. 左メニューの [OAuth & Permissions] をクリックし、[Scopes]で、`commands` を追加します
 
 #### [オプション]Findings レポート機能のための Slack App の設定
 
@@ -210,8 +211,11 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
       | Request URL       | Request URL と同じ URL         |
       | Short Description | Create report about findings of Security Hub and GuardDuty |
 
+> NOTE
+> メトリクス分析支援機能を有効にしている場合、以下の手順は実施不要です
+
 2. 左メニューの [App Home] をクリックし、[Message Tab] にある [Allow users to send Slash commands and messages from the messages tab] にチェックを入れます
-   1. メトリクス分析支援機能を有効にしている場合、この手順は実施不要です
+3. 左メニューの [OAuth & Permissions] をクリックし、[Scopes]で、`commands` を追加します
 
 ### テスト
 

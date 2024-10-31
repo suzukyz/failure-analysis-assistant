@@ -197,6 +197,7 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
       | Short Description | Get insight for your workload |
 
 2. Click [App Home] on the left menu, check [Allow users to send Slash commands and messages from the messages tab] in [Message tab].
+3. Click [OAuth & Permissions] on the left menu, Add `commands` scope in [Scopes] section.
 
 #### [Optional]Configuration of Slack App for Findings Report
 
@@ -209,8 +210,11 @@ $ npx cdk deploy --all --profile {your_profile} --require-approval never
       | Request URL       | same URL         |
       | Short Description | Create report about findings of Security Hub and GuardDuty |
 
+> NOTE
+> If you enabled Metrics Insight Assist, you don't need to do below steps.
+
 2. Click [App Home] on the left menu, check [Allow users to send Slash commands and messages from the messages tab] in [Message tab].
-   1. If you enabled Metrics Insight Assist, you don't need to do that.
+3. Click [OAuth & Permissions] on the left menu, Add `commands` scope in [Scopes] section.
 
 ### Testing
 
