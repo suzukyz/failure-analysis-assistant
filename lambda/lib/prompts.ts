@@ -135,7 +135,7 @@ export class Prompt {
     <レポートのMarkdownフォーマット>
     # 全体サマリ
 
-    // 全てのFindingsを横断的にチェックした時のサマリを記載する
+    // 全てのFindingsを横断的にチェックした時のサマリを記載し、もし緊急度の高いFindingがあれば、それも記載する
 
     # Security Hub の Findings
 
