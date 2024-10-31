@@ -131,7 +131,7 @@ app.action("submit_button", async ({ body, ack, respond }) => {
 app.command('/insight', async ({ client, body, ack }) => {
   // Ack the request of insight command
   await ack();
-  logger.info("/insight command", {client, body})
+  logger.info("/insight command", {body})
 
   try {
     await client.views.open({
@@ -146,7 +146,7 @@ app.command('/insight', async ({ client, body, ack }) => {
 app.view('view_insight', async ({ ack, view, client, body }) => {
   // Ack the request of view_insight
   await ack();
-  logger.info("view_insight view", {view, client, body})
+  logger.info("view_insight view", {view, body})
   
   // Get the form data
   const query = view['state']['values']['input_query']['query']['value'];
@@ -195,7 +195,7 @@ app.view('view_insight', async ({ ack, view, client, body }) => {
 app.command('/findings-report', async ({ client, body, ack }) => {
   // Ack the request of insight command
   await ack();
-  logger.info("/findings-report command", {client, body})
+  logger.info("/findings-report command", {body})
 
   try {
     const res = await invokeAsyncLambdaFunc(
