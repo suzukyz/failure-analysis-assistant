@@ -4,7 +4,7 @@ import * as marked from 'marked';
 import logger from './logger.js';
 
 export async function convertMermaidToImage(mermaidSyntax: string){
-  logger.info(`Input: ${mermaidSyntax}`);
+  logger.info("Start", {functionName: convertMermaidToImage.name, input: {mermaidSyntax}});
   chromium.setHeadlessMode = true;
   chromium.setGraphicsMode = false;
   try{
@@ -33,14 +33,14 @@ export async function convertMermaidToImage(mermaidSyntax: string){
     const mermaidContent = await page.$('.mermaid');
     const png = await mermaidContent?.screenshot({type: 'png'});
     return png;
-  }catch(e){
-    logger.error(JSON.stringify(e));
-    throw new Error(JSON.stringify(e))
+  }catch(error){
+    logger.error("Something happened", error as Error);
+    throw new Error(JSON.stringify(error))
   }
 }
 
 export async function convertMDToPDF(markdownText: string){
-  logger.info(`Input: ${markdownText}`);
+  logger.info("Start", {functionName: convertMDToPDF.name, input: {markdownText}});
   chromium.setHeadlessMode = true;
   chromium.setGraphicsMode = false;
   try{
@@ -63,7 +63,6 @@ export async function convertMDToPDF(markdownText: string){
       headless: chromium.headless,
     });
     const html = marked.parse(markdownText);
-    console.log(`html: ${html}`)
     const page = await browser.newPage();
     await page.setContent(`
       <html>
@@ -76,7 +75,6 @@ export async function convertMDToPDF(markdownText: string){
         </body>
       </html>
     `, {waitUntil: 'networkidle0'});
-    logger.info(`page: ${JSON.stringify(await page.content())}`)
     const pdf = await page.pdf({
       format: 'A4',
       displayHeaderFooter: true,
@@ -93,8 +91,8 @@ export async function convertMDToPDF(markdownText: string){
       scale: 0.8,
     })
     return pdf;
-  }catch(e){
-    logger.error(JSON.stringify(e));
-    throw new Error(JSON.stringify(e))
+  }catch(error){
+    logger.error("Something happened", error as Error);
+    throw new Error(JSON.stringify(error))
   }
 }

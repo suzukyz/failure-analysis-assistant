@@ -27,7 +27,7 @@ export const handler: Handler = async (event: {
   threadTs?: string;
 }) => {
   // Event parameters
-  logger.info(`Event: ${JSON.stringify(event)}`);
+  logger.info("Request started", event);
   const {
     errorDescription,
     startDate,
@@ -61,7 +61,7 @@ export const handler: Handler = async (event: {
 
   // Check required variables.
   if (!modelId || !cwLogsQuery || !logGroups || !region || !channelId || !threadTs) {
-    logger.error(`Not found any environment variables. Please check them.`);
+    logger.error(`Not found any environment variables. Please check.`, {environemnts: {modelId, cwLogsQuery, logGroups, region, channelId, threadTs}});
     if (channelId && threadTs) {
       messageClient.sendMessage(
         lang && lang === "ja"
@@ -167,7 +167,7 @@ export const handler: Handler = async (event: {
         Prompt.getStringValueFromQueryResult(results, "XrayTraces")
       );
 
-    logger.info(`Bedrock prompt: ${failureAnalysisPrompt}`);
+    logger.info("Made prompt", {prompt: failureAnalysisPrompt});
 
     const answer = await converse(failureAnalysisPrompt);
 
@@ -186,7 +186,7 @@ export const handler: Handler = async (event: {
       await messageClient.sendMarkdownSnippet("answer.md", answer, channelId, threadTs)
     }
 
-    logger.info(`Bedrock answer: ${answer}`);
+    logger.info('Success to get answer:', answer);
 
     // Create explanation how to get logs by operators.
     const howToGetLogs =
@@ -200,7 +200,7 @@ export const handler: Handler = async (event: {
         Prompt.getStringValueFromQueryResult(results, "AlbAccessLogsQueryString"),
         Prompt.getStringValueFromQueryResult(results, "CloudTrailLogsQueryString")
       );
-    logger.info(`HowToGetLogs: ${howToGetLogs}`);
+    logger.info('Success to create HowToGetLogs', {howToGetLogs});
 
     // Send the explanation to Slack directly.
     await messageClient.sendMarkdownSnippet(
@@ -218,7 +218,7 @@ export const handler: Handler = async (event: {
       'anthropic.claude-3-5-sonnet-20240620-v1:0', 
     )
     const mermaidSyntax = split(split(outputImageResponse, '<OutputMermaidSyntax>')[1], '</OutputMermaidSyntax>')[0];
-    logger.info(`Mermaid syntax: ${mermaidSyntax}`)
+    logger.info('Success to create Mermaid syntax', {mermaidSyntax})
 
     const png = await convertMermaidToImage(mermaidSyntax)
 
@@ -232,7 +232,7 @@ export const handler: Handler = async (event: {
     /* ****** */
 
   } catch (error) {
-    logger.error(`${JSON.stringify(error)}`);
+    logger.error("Something happened", error as Error);
     // Send the form to retry when error was occured.
     if(channelId && threadTs){
       await messageClient.sendMessage(

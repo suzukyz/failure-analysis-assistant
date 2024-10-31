@@ -13,7 +13,7 @@ export const handler: Handler = async (event: {
   channelId: string;
 }) => {
   // Event parameters
-  logger.info(`Event: ${JSON.stringify(event)}`);
+  logger.info("Request started", event);
   const { channelId } = event;
 
   // Environment variables

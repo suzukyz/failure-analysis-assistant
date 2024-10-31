@@ -845,7 +845,7 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
         });
       }
     } catch (error) {
-      logger.error(JSON.stringify(error));
+      logger.error("Failed", error as Error);
       await this.slackClient.chat.postMessage({
         channel: channelId,
         text: "Error. Please contact your system admin.",
@@ -879,7 +879,7 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
         });
       }
     } catch (error) {
-      logger.error(JSON.stringify(error));
+      logger.error("Failed", error as Error);
       await this.slackClient.chat.postMessage({
         channel: channelId,
         text: "Error. Please contact your system admin.",
@@ -912,9 +912,9 @@ X-ray's management console, please set data range like from \`${startDate}\` to 
           initial_comment: this.language === "ja" ? "ファイルをアップロードしました" : "Uploaded a file."
         })
       }
-      logger.info(`Uploaded file: ${JSON.stringify(uploadedFile.files.at(0)!.files!.at(0)!)}`)
+      logger.info('Uploaded file', {uploadFile: JSON.stringify(uploadedFile.files.at(0)!.files!.at(0)!)})
     } catch (error) {
-      logger.error(JSON.stringify(error));
+      logger.error("Failed", error as Error);
       await this.slackClient.chat.postMessage({
         channel: channelId,
         text: "Error. Please contact your system admin.",

@@ -13,7 +13,7 @@ export const handler: Handler = async (event: {
   channelId?: string;
 }) => {
   // Event parameters
-  logger.info(`Event: ${JSON.stringify(event)}`);
+  logger.info("Request started", event);
   const {
     query,
     startDate,
@@ -35,7 +35,7 @@ export const handler: Handler = async (event: {
 
   // Check required variables.
   if (!modelId || !region || !channelId ) {
-    logger.error(`Not found any environment variables. Please check them.`);
+    logger.error(`Not found any environment variables. Please check them.`, {environments: {modelId, region, channelId}});
     if (channelId) {
       messageClient.sendMessage(
         lang && lang === "ja"
@@ -57,9 +57,12 @@ export const handler: Handler = async (event: {
 
     const metricsInsightPrompt = 
         prompt.createMetricsInsightPrompt(query, JSON.stringify(results.value));
+    logger.info("Made prompt", {prompt: metricsInsightPrompt})
 
     const answer = await converse(metricsInsightPrompt);
     if(!answer) throw new Error("No response from LLM");
+
+    logger.info("Answer", answer);
 
     if(answer.length < 3500){
       // Send the answer to Slack directly.
@@ -72,7 +75,7 @@ export const handler: Handler = async (event: {
       await messageClient.sendMarkdownSnippet("answer.md", answer, channelId)
     }
   } catch (error) {
-    logger.error(`${JSON.stringify(error)}`);
+    logger.error("Something happened", error as Error);
     // Send the form to retry when error was occured.
     if(channelId){
       await messageClient.sendMessage(
