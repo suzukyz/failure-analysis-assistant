@@ -30,7 +30,7 @@ export function registerAllTools(
     hasCloudTrailLogTable: !!config.cloudTrailLogTable,
     xrayTraceEnabled: config.xrayTraceEnabled,
     knowledgeBaseEnabled: config.knowledgeBaseEnabled,
-    logGroupsCount: config.cwLogsLogGroups.length
+    logGroupsCount: config.cwLogsLogGroupArns.length
   });
   
   // Metrics tool
@@ -61,6 +61,12 @@ export function registerAllTools(
         type: "string",
         description: "集計方法（Average, Sum, Minimum, Maximum, SampleCount）。デフォルトはAverage。",
         required: false
+      },
+      {
+        name: "owningAccount",
+        type: "string",
+        description: "クロスアカウントオブザーバビリティ設定時に、メトリクスの検索対象をあるアカウントだけに絞りたい場合に利用する。デフォルトは未設定(undefined)",
+        required: false
       }
     ],
     execute: async (params: {
@@ -68,6 +74,7 @@ export function registerAllTools(
       namespaces?: string[];
       period?: number;
       stat?: string;
+      owningAccount?: string;
     }) => {
       return await metricsToolExecutor({
         ...params,
@@ -78,8 +85,8 @@ export function registerAllTools(
     }
   });
   
-  // Logs tool - CloudWatch Logsのロググループが設定されている場合のみ登録
-  if (config.cwLogsLogGroups.length > 0) {
+  // Logs tool - CloudWatch LogsのロググループのARNが設定されている場合のみ登録
+  if (config.cwLogsLogGroupArns.length > 0) {
     toolRegistry.registerTool({
       name: "logs_tool",
       description: `設定されたCloudWatch Logsからログを取得して分析します。フィルターパターンを指定できます。

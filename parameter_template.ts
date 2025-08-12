@@ -26,6 +26,10 @@ export interface AppParameter {
   embeddingModelId?: string;
   rerankModelId?: string;
   maxAgentCycles?: number; // Maximum number of cycles for ReAct agent
+  crossAccountObservability?: {
+    enabled: boolean;
+    sourceAccounts?: string[]; // The list of source account IDs
+  };
 }
 
 // Parameters for Dev Account
@@ -55,5 +59,5 @@ export const devParameter: AppParameter = {
   detectorId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   knowledgeBase: true,
   embeddingModelId: "amazon.titan-embed-text-v2:0",
-  maxAgentCycles: 5 // Maximum number of cycles for ReAct agent
+  maxAgentCycles: 5, // Maximum number of cycles for ReAct agent
 };

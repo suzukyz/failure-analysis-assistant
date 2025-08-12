@@ -13,7 +13,7 @@ export interface Configuration {
   maxAgentCycles: number;
   
   // CloudWatch関連
-  cwLogsLogGroups: string[];
+  cwLogsLogGroupArns: string[];
   cwLogsInsightQuery: string;
   
   // Athena関連
@@ -81,7 +81,7 @@ export class ConfigurationService {
         hasCloudTrailLogTable: !!this.config.cloudTrailLogTable,
         xrayTraceEnabled: this.config.xrayTraceEnabled,
         knowledgeBaseEnabled: this.config.knowledgeBaseEnabled,
-        logGroupsCount: this.config.cwLogsLogGroups.length
+        logGroupsCount: this.config.cwLogsLogGroupArns.length
       });
     } catch (error) {
       // 初期化失敗
@@ -96,8 +96,8 @@ export class ConfigurationService {
    */
   private loadConfigFromEnvironment(): void {
     // 環境変数からの読み込みをここに集約
-    const configuredLogGroups = process.env.CW_LOGS_LOGGROUPS ? 
-      JSON.parse(process.env.CW_LOGS_LOGGROUPS).loggroups || [] : 
+    const configuredLogGroups = process.env.CW_LOGS_LOGGROUP_ARNS ? 
+      JSON.parse(process.env.CW_LOGS_LOGGROUP_ARNS).loggroups || [] : 
       [];
     
     this.config = {
@@ -105,7 +105,7 @@ export class ConfigurationService {
       modelId: process.env.MODEL_ID || "",
       sessionTableName: process.env.SESSION_TABLE_NAME || null,
       maxAgentCycles: Number(process.env.MAX_AGENT_CYCLES || "5"),
-      cwLogsLogGroups: configuredLogGroups,
+      cwLogsLogGroupArns: configuredLogGroups,
       cwLogsInsightQuery: process.env.CW_LOGS_INSIGHT_QUERY || "",
       athenaDatabase: process.env.ATHENA_DATABASE_NAME || null,
       athenaQueryBucket: process.env.ATHENA_QUERY_BUCKET || null,
@@ -193,10 +193,10 @@ export class ConfigurationService {
   }
   
   /**
-   * CloudWatch Logsのロググループを取得する
+   * CloudWatch LogsのロググループのARNを取得する
    */
-  public getCwLogsLogGroups(): string[] {
-    return this.config.cwLogsLogGroups;
+  public getCwLogsLogGroupArns(): string[] {
+    return this.config.cwLogsLogGroupArns;
   }
   
   /**
@@ -287,7 +287,7 @@ export class ConfigurationService {
    * AWSリージョンを取得する
    */
   public getRegion(): string {
-    return this.config.region;
+    return this.config.region || process.env.AWS_REGION || 'us-east-1';
   }
   
   /**
@@ -323,5 +323,13 @@ export class ConfigurationService {
    */
   public getDetectorId(): string | null {
     return this.config.detectorId;
+  }
+
+  /**
+   * Get cross-account observability configuration
+   * @returns Cross-account observability configuration
+   */
+  public getCrossAccountObservability() {
+    return this.config.crossAccountObservability;
   }
 }

@@ -250,7 +250,7 @@ export class I18nProvider {
         kbDocumentScore: "- Score: {0}\n",
         kbDocumentSource: "- Source: {0}\n\n",
         kbNoText: "No text",
-        logsGroupsNotConfigured: "Log groups are not configured. Please check cwLogsLogGroups in parameter.ts.",
+        logsGroupsNotConfigured: "Log groups are not configured. Please check cwLogsLogGroupArns in parameter.ts.",
         logsFixedFilterNote: "\n\n**Note: The original filter pattern had issues and was fixed. Fixed pattern: `{0}`**",
         logsInvalidFilterPattern: "Invalid filter pattern syntax: {0}\n\nExamples of valid filter pattern syntax:\n- `@message like 'error'`\n- `@message like /Exception/`\n- `@message like 'error' and @timestamp > '2023-01-01'`\n\nFor more details, see the CloudWatch Logs Insights query syntax documentation: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html",
         logsQueryError: "Error occurred while retrieving logs: {0}",

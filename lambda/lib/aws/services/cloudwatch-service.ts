@@ -27,15 +27,19 @@ export class CloudWatchService {
   /**
    * Get metrics for the specified namespace
    * @param namespace Metrics namespace
+   * @param includeLinkedAccounts If you are using this operation in a monitoring account, specify true to include metrics from source accounts in the returned data.
+   * @param owningAccount When you use this operation in a monitoring account, use this field to return metrics only from one source account. 
    * @returns Array of metrics
    */
-  async listMetrics(namespace: string): Promise<Metric[]> {
+  async listMetrics(namespace: string, includeLinkedAccounts?: boolean, owningAccount?: string): Promise<Metric[]> {
     logger.info("Start", {function: "listMetrics", input: {namespace}});
     
     try {
       const command = new ListMetricsCommand({
         Namespace: namespace, 
-        RecentlyActive: "PT3H" // 型を合わせるために直接リテラルを使用
+        RecentlyActive: "PT3H",
+        IncludeLinkedAccounts: includeLinkedAccounts,
+        OwningAccount: owningAccount
       });
       
       const response = await this.client.send(command);
@@ -73,7 +77,7 @@ export class CloudWatchService {
       const input: GetMetricDataCommandInput = {
         MetricDataQueries: query,
         StartTime: new Date(startDate),
-        EndTime: new Date(endDate) 
+        EndTime: new Date(endDate)
       };
       
       let resGetMetricDataCommand = await this.client.send(new GetMetricDataCommand(input));

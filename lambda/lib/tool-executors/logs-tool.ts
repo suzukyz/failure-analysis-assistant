@@ -38,13 +38,13 @@ export class LogsTool {
     
     try {
       // Use log groups from configuration service
-      const configuredLogGroups = this.configService.getCwLogsLogGroups();
+      const configuredLogGroupArns = this.configService.getCwLogsLogGroupArns();
       
-      if (configuredLogGroups.length === 0) {
+      if (configuredLogGroupArns.length === 0) {
         return this.i18n.translate("logsGroupsNotConfigured");
       }
       
-      logger.info("Using configured log groups", { configuredLogGroups });
+      logger.info("Using configured log group ARNs", { configuredLogGroupArns });
       
       // Build query string
       const filterPattern = params.filterPattern || "";
@@ -67,7 +67,7 @@ export class LogsTool {
         const results = await cloudWatchLogsService.queryLogs(
           params.startDate,
           params.endDate,
-          configuredLogGroups,
+          configuredLogGroupArns,
           queryString
         );
         
@@ -100,7 +100,7 @@ export class LogsTool {
               const results = await cloudWatchLogsService.queryLogs(
                 params.startDate,
                 params.endDate,
-                configuredLogGroups,
+                configuredLogGroupArns,
                 fixedQueryString
               );
               

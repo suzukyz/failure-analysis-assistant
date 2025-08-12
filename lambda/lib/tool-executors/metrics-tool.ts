@@ -21,6 +21,8 @@ export class MetricsTool {
     period?: number;
     stat?: string;
     i18n?: I18nProvider;
+    includeLinkedAccount?: boolean;
+    owningAccount?: string;
   }): Promise<string> {
     // Update i18n if provided in params
     if (params.i18n) {
@@ -45,7 +47,7 @@ export class MetricsTool {
       let metrics = [];
       for (const namespace of namespaces) {
         try {
-          const nsMetrics = await cloudWatchService.listMetrics(namespace);
+          const nsMetrics = await cloudWatchService.listMetrics(namespace, params.includeLinkedAccount, params.owningAccount);
           metrics.push(...nsMetrics);
           logger.info(`Retrieved ${nsMetrics.length} metrics from namespace ${namespace}`);
         } catch (error) {
@@ -161,6 +163,8 @@ export const metricsToolExecutor = async (params: {
   period?: number;
   stat?: string;
   i18n?: I18nProvider;
+  includeLinkedAccount?: boolean;
+  owningAccount?: string;
 }): Promise<string> => {
   return await metricsTool.execute(params);
 };

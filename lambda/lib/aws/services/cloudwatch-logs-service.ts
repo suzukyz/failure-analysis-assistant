@@ -3,8 +3,6 @@ import {
   StartQueryCommand,
   GetQueryResultsCommand,
   QueryStatus,
-  DescribeLogGroupsCommand,
-  LogGroup
 } from "@aws-sdk/client-cloudwatch-logs";
 import { logger } from "../../logger.js";
 import { AWSError } from '../errors/aws-error.js';
@@ -38,56 +36,6 @@ export class CloudWatchLogsService {
    */
   constructor(client?: CloudWatchLogsClient) {
     this.client = client || new CloudWatchLogsClient();
-  }
-  
-  /**
-   * Get list of log groups
-   * @param logGroupNamePrefixes Array of log group name prefixes
-   * @returns Array of log groups
-   */
-  async describeLogGroups(logGroupNamePrefixes?: string[]): Promise<LogGroup[]> {
-    logger.info("Start", {function: "describeLogGroups", input: {logGroupNamePrefixes}});
-    
-    try {
-      const logGroups: LogGroup[] = [];
-      let nextToken: string | undefined;
-      
-      do {
-        const command = new DescribeLogGroupsCommand({
-          logGroupNamePrefix: logGroupNamePrefixes && logGroupNamePrefixes.length === 1 ? logGroupNamePrefixes[0] : undefined,
-          nextToken
-        });
-        
-        const response = await this.client.send(command);
-        
-        if (response.logGroups && response.logGroups.length > 0) {
-          // Filter if specific prefixes are specified
-          if (logGroupNamePrefixes && logGroupNamePrefixes.length > 1) {
-            const filteredGroups = response.logGroups.filter(group => 
-              group.logGroupName && logGroupNamePrefixes.some(prefix => 
-                group.logGroupName && prefix && group.logGroupName.startsWith(prefix)
-              )
-            );
-            logGroups.push(...filteredGroups);
-          } else {
-            logGroups.push(...response.logGroups);
-          }
-        }
-        
-        nextToken = response.nextToken;
-      } while (nextToken);
-      
-      logger.info("End", {function: "describeLogGroups", output: {logGroupsCount: logGroups.length}});
-      return logGroups;
-    } catch (error) {
-      logger.error("Error in describeLogGroups", {error});
-      throw new AWSError(
-        'Failed to describe log groups',
-        'CloudWatchLogs',
-        'describeLogGroups',
-        error as Error
-      );
-    }
   }
   
   /**
