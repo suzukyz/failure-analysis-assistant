@@ -130,10 +130,10 @@ export const devParameter: AppParameter = {
   slackAppTokenKey: "SlackAppToken",
   slackSigningSecretKey: "SlackSigningSecret",
   architectureDescription: "The workload you are responsible for consists of ALB, EC2, and Aurora, and Spring applications are deployed on EC2.",
-  cwLogsLogGroups: [
-    "/ec2/demoapp",
-    "/ec2/messages",
-    "/aws/application-signals/data",
+  cwLogsLogGroupArns: [
+    "arn:aws:logs:us-east-1:123456789012:log-group:/ec2/demoapp",
+    "arn:aws:logs:us-east-1:123456789012:log-group:/ec2/messages",
+    "arn:aws:logs:us-east-1:123456789012:log-group:/aws/application-signals/data"
   ],
   cwLogsInsightQuery: "fields @message | limit 100",
   xrayTrace: false,
@@ -159,8 +159,8 @@ export const devParameter: AppParameter = {
 | `slackAppTokenKey`       | `"SlackAppToken"`                                                         | The key name is to get `SlackAppToken` from AWS Secrets Manager. You should use the same key name in [Registration of Slack App](#registration-of-slack-app).                               |
 | `slackSingingSecretKey`  | `"SlackSigningSecret"`                                                     | The key name is to get `SlackSigningSecret` from AWS Secrets Manager. You should use the same key name in [Registration of Slack App](#registration-of-slack-app).                          |
 | `architectureDescription`  | `"The workload you are responsible for consists of ALB, EC2, and Aurora, and Spring applications are deployed on EC2."`                                                     | This is a sentence explaining the system to failure analysis. It will be incorporated into the prompt, so please try to include AWS service names and element technology, and keep it simple.                           |
-| `cwLogsLogGroups`        | `["/ec2/demoapp", "/ec2/messages", "/aws/application-signals/data"]` | Specify the log group of Amazon CloudWatch Logs for which you want to retrieve logs. Up to 50 can be specified.                                                                             |
-| `cwLogsInsightQuery`     | `"fields @message \| limit 100"`                                          | Specify the query you want to use with CloudWatch Logs Insight. Due to balance with the context window, the default limit is 100 (please modify the query according to actual environment). |
+| `cwLogsLogGroupArns`        | `["arn:aws:logs:us-east-1:123456789012:log-group:/ec2/demoapp","arn:aws:logs:us-east-1:123456789012:log-group:/ec2/messages"]` | Specify the log group of Amazon CloudWatch Logs for which you want to retrieve logs. Up to 50 can be specified.                                                                             |
+| `cwLogs                                       | Specify the query you want to use with CloudWatch Logs Insight. Due to balance with the context window, the default limit is 100 (please modify the query according to actual environment). |
 | `databaseName`           | `"athenadatacatalog"`                                                     | The name of the Amazon Athena database. Required if you want to use Athena to search logs.                                                                                                  |
 | `albAccessLogTableName`  | `"alb_access_logs"`                                                       | ALB access log table name. In this sample, ALB access log search was implemented in Athena, so the ALB access log table name is specified when using it.                                    |
 | `cloudTrailLogTableName` | `"cloud_trail_logs"`                                                      | AWS CloudTrail log table name. In this sample, we implemented a CloudTrail audit log log search in Athena, so specify the CloudTrail log table name when using it.                          |

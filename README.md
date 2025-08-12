@@ -131,10 +131,10 @@ export const devParameter: AppParameter = {
   slackSigningSecretKey: "SlackSigningSecret",
   architectureDescription: `
   あなたが担当するワークロードは、ALB, EC2, Aurora で構成されています。また、EC2 上に Spring アプリケーションがデプロイされています。`,
-  cwLogsLogGroups: [
-    "/ec2/demoapp",
-    "/ec2/messages",
-    "/aws/application-signals/data",
+  cwLogsLogGroupArns: [
+    "arn:aws:logs:us-east-1:123456789012:log-group:/ec2/demoapp",
+    "arn:aws:logs:us-east-1:123456789012:log-group:/ec2/messages",
+    "arn:aws:logs:us-east-1:123456789012:log-group:/aws/application-signals/data"
   ],
   cwLogsInsightQuery: "fields @message | limit 100",
   xrayTrace: false,
@@ -160,7 +160,7 @@ export const devParameter: AppParameter = {
 | `slackAppTokenKey`       | `"SlackAppToken"`                                                         | AWS Secrets Manager から SlackAppToken を取得するためのキー名。[Slack App の登録](#slack-app-の登録)で利用したキー名を指定してください                                                                            |
 | `slackSingingSecretKey`  | `"SlackSigningSecret"`                                                     | AWS Secrets Manager から SlackSigningSecret を取得するためのキー名。[Slack App の登録](#slack-app-の登録)で利用したキー名を指定してください                                                                            |
 | `architectureDescription`  | `"あなたが担当するワークロードは、ALB, EC2, Aurora で構成されています。また、EC2 上に Spring アプリケーションがデプロイされています。"`                                                     | 　障害分析の対象となるシステムを説明する文章です。プロンプトに組み込まれますので、AWSのサービス名や要素技術を含める、簡潔にする、などを心がけてください。                                                                            |
-| `cwLogsLogGroups`        | `["/ec2/demoapp", "/ec2/messages", "/aws/application-signals/data"]` | ログを取得したい Amazon CloudWatch Logs のロググループを指定します。最大 50 個まで指定可能です                                                                                   |
+| `cwLogsLogGroupArns`        | `["arn:aws:logs:us-east-1:123456789012:log-group:/ec2/demoapp","arn:aws:logs:us-east-1:123456789012:log-group:/ec2/messages"]` | ログを取得したい Amazon CloudWatch Logs のロググループを指定します。最大 50 個まで指定可能です                                                                                   |
 | `cwLogsInsightQuery`     | `"fields @message \| limit 100"`                                          | CloudWatch Logs Insight で利用したいクエリを指定します。コンテキストウィンドウとの兼ね合いから、デフォルトでは、100 件に制限しています（実際のプロンプトに応じて、調整ください） |
 | `databaseName`           | `"athenadatacatalog"`                                                     | Amazon Athena のデータベース名。Athena を使ってログ検索を行いたい場合は必須です                                                                                                  |
 | `albAccessLogTableName`  | `"alb_access_logs"`                                                       | ALB のアクセスログのテーブル名。今回のサンプルでは、Athena で ALB のアクセスログのログ検索を実装したため、利用する場合 ALB のアクセスログテーブル名を指定します                  |
