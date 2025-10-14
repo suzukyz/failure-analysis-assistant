@@ -14,8 +14,9 @@ export interface AppParameter {
   slackAppTokenKey: string;
   slackSigningSecretKey: string;
   architectureDescription: string;
-  cwLogsLogGroups: string[];
+  cwLogsLogGroupArns: string[];
   cwLogsInsightQuery: string;
+  crossAccountObservability: boolean;
   databaseName?: string;
   albAccessLogTableName?: string;
   cloudTrailLogTableName?: string;
@@ -26,10 +27,7 @@ export interface AppParameter {
   embeddingModelId?: string;
   rerankModelId?: string;
   maxAgentCycles?: number; // Maximum number of cycles for ReAct agent
-  crossAccountObservability?: {
-    enabled: boolean;
-    sourceAccounts?: string[]; // The list of source account IDs
-  };
+  sourceAccounts?: string[]; // The list of source account IDs
 }
 
 // Parameters for Dev Account
@@ -45,12 +43,13 @@ export const devParameter: AppParameter = {
   slackSigningSecretKey: "SlackSigningSecret",
   architectureDescription: `
   あなたが担当するワークロードは、ALB, EC2, Aurora で構成されています。また、EC2 上に Spring アプリケーションがデプロイされています。`,
-  cwLogsLogGroups: [
+  cwLogsLogGroupArns: [
     "/ec2/demoapp",
     "/ec2/messages",
     "/aws/application-signals/data",
   ],
   cwLogsInsightQuery: "fields @message | limit 100",
+  crossAccountObservability: false,
   xrayTrace: false,
   slashCommands: {
     insight: false,

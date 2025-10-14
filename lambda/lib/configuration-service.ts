@@ -15,6 +15,8 @@ export interface Configuration {
   // CloudWatch関連
   cwLogsLogGroupArns: string[];
   cwLogsInsightQuery: string;
+  crossAccountObservability: boolean;
+  sourceAccounts: string[];
   
   // Athena関連
   athenaDatabase: string | null;
@@ -107,6 +109,8 @@ export class ConfigurationService {
       maxAgentCycles: Number(process.env.MAX_AGENT_CYCLES || "5"),
       cwLogsLogGroupArns: configuredLogGroups,
       cwLogsInsightQuery: process.env.CW_LOGS_INSIGHT_QUERY || "",
+      crossAccountObservability: Boolean(process.env.CROSS_ACCOUNT_OBSERVABILITY) || false,
+      sourceAccounts: process.env.SOURCE_ACCOUNTS ? JSON.parse(process.env.SOURCE_ACCOUNTS) : [] as string[],
       athenaDatabase: process.env.ATHENA_DATABASE_NAME || null,
       athenaQueryBucket: process.env.ATHENA_QUERY_BUCKET || null,
       albAccessLogTable: process.env.ALB_ACCESS_LOG_TABLE_NAME || null,
@@ -122,7 +126,7 @@ export class ConfigurationService {
       lambdaFunctionName: process.env.FUNCTION_NAME || process.env.AWS_LAMBDA_FUNCTION_NAME || null,
       metricsInsightName: process.env.METRICS_INSIGHT_NAME || null,
       findingsReportName: process.env.FINDINGS_REPORT_NAME || null,
-      detectorId: process.env.DETECTOR_ID || null
+      detectorId: process.env.DETECTOR_ID || null,
     };
   }
   
@@ -327,9 +331,15 @@ export class ConfigurationService {
 
   /**
    * Get cross-account observability configuration
-   * @returns Cross-account observability configuration
    */
   public getCrossAccountObservability() {
     return this.config.crossAccountObservability;
+  }
+
+  /**
+   * Get source accounts of cross-account observability configuration
+   */
+  public getSourceAccounts() {
+    return this.config.sourceAccounts;
   }
 }

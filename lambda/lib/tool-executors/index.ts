@@ -34,58 +34,104 @@ export function registerAllTools(
   });
   
   // Metrics tool
-  toolRegistry.registerTool({
-    name: "metrics_tool",
-    description: `CloudWatchメトリクスを取得して分析します。特定のメトリクス名や名前空間でフィルタリングできます。
-    名前空間を指定しない場合は、一般的なAWSサービスの名前空間から自動的に取得します。
-    'ApplicationSignals'の名前空間でメトリクスが定義されている場合、ビジネスメトリクスも取得できます。`,
-    parameters: [
-      {
-        name: "metricNames",
-        type: "string[]",
-        description: "取得するメトリクス名の配列（例: ['Latency', 'ErrorRate']）",
-        required: false
-      },
-      {
-        name: "namespaces",
-        type: "string[]",
-        description: "取得するメトリクスの名前空間の配列（例: ['AWS/EC2', 'AWS/Lambda']）。指定しない場合は一般的なAWSサービスの名前空間を使用。",
-        required: false
-      },
-      {
-        name: "period",
-        type: "number",
-        description: "メトリクスの期間（秒）。デフォルトは60秒。",
-        required: false
-      },
-      {
-        name: "stat",
-        type: "string",
-        description: "集計方法（Average, Sum, Minimum, Maximum, SampleCount）。デフォルトはAverage。",
-        required: false
-      },
-      {
-        name: "owningAccount",
-        type: "string",
-        description: "クロスアカウントオブザーバビリティ設定時に、メトリクスの検索対象をあるアカウントだけに絞りたい場合に利用する。デフォルトは未設定(undefined)",
-        required: false
+  if(config.crossAccountObservability) {
+    toolRegistry.registerTool({
+      name: "metrics_tool",
+      description: "CloudWatchメトリクスを取得して分析します。特定のメトリクス名や名前空間、アカウントIDでフィルタリングできます。名前空間を指定しない場合は、一般的なAWSサービスの名前空間から自動的に取得します。",
+      parameters: [
+        {
+          name: "metricNames",
+          type: "string[]",
+          description: "取得するメトリクス名の配列（例: ['Latency', 'ErrorRate']）",
+          required: false
+        },
+        {
+          name: "namespaces",
+          type: "string[]",
+          description: "取得するメトリクスの名前空間の配列（例: ['AWS/EC2', 'AWS/Lambda']）。指定しない場合は一般的なAWSサービスの名前空間を使用。",
+          required: false
+        },
+        {
+          name: "period",
+          type: "number",
+          description: "メトリクスの期間（秒）。デフォルトは60秒。",
+          required: false
+        },
+        {
+          name: "stat",
+          type: "string",
+          description: "集計方法（Average, Sum, Minimum, Maximum, SampleCount）。デフォルトはAverage。",
+          required: false
+        },
+        {
+          name: "owningAccount",
+          type: "string",
+          description: `メトリクスの検索対象を特定のアカウントだけに絞りたい場合に利用する。デフォルトは未設定(undefined)で、全てのソースアカウントが対象となる。指定可能なアカウントIDは、${config.sourceAccounts.join(", ")}`,
+          required: false
+        }
+      ],
+      execute: async (params: {
+        metricNames?: string[];
+        namespaces?: string[];
+        period?: number;
+        stat?: string;
+        owningAccount?: string;
+      }) => {
+        return await metricsToolExecutor({
+          ...params,
+          startDate: globalParams.startDate,
+          endDate: globalParams.endDate,
+          i18n: i18nInstance, // Pass i18n instance
+          includeLinkedAccount: true
+        });
       }
-    ],
-    execute: async (params: {
-      metricNames?: string[];
-      namespaces?: string[];
-      period?: number;
-      stat?: string;
-      owningAccount?: string;
-    }) => {
-      return await metricsToolExecutor({
-        ...params,
-        startDate: globalParams.startDate,
-        endDate: globalParams.endDate,
-        i18n: i18nInstance // Pass i18n instance
-      });
-    }
-  });
+    });
+  } else {
+    toolRegistry.registerTool({
+      name: "metrics_tool",
+      description: "CloudWatchメトリクスを取得して分析します。特定のメトリクス名や名前空間でフィルタリングできます。名前空間を指定しない場合は、一般的なAWSサービスの名前空間から自動的に取得します。",
+      parameters: [
+        {
+          name: "metricNames",
+          type: "string[]",
+          description: "取得するメトリクス名の配列（例: ['Latency', 'ErrorRate']）",
+          required: false
+        },
+        {
+          name: "namespaces",
+          type: "string[]",
+          description: "取得するメトリクスの名前空間の配列（例: ['AWS/EC2', 'AWS/Lambda']）。指定しない場合は一般的なAWSサービスの名前空間を使用。",
+          required: false
+        },
+        {
+          name: "period",
+          type: "number",
+          description: "メトリクスの期間（秒）。デフォルトは60秒。",
+          required: false
+        },
+        {
+          name: "stat",
+          type: "string",
+          description: "集計方法（Average, Sum, Minimum, Maximum, SampleCount）。デフォルトはAverage。",
+          required: false
+        },
+      ],
+      execute: async (params: {
+        metricNames?: string[];
+        namespaces?: string[];
+        period?: number;
+        stat?: string;
+      }) => {
+        return await metricsToolExecutor({
+          ...params,
+          startDate: globalParams.startDate,
+          endDate: globalParams.endDate,
+          i18n: i18nInstance, // Pass i18n instance
+          includeLinkedAccount: false,
+        });
+      }
+    });
+  }
   
   // Logs tool - CloudWatch LogsのロググループのARNが設定されている場合のみ登録
   if (config.cwLogsLogGroupArns.length > 0) {
@@ -264,7 +310,7 @@ export function registerAllTools(
   if (config.knowledgeBaseEnabled) {
     toolRegistry.registerTool({
       name: "kb_tool",
-      description: "Knowledge Baseからドキュメントを検索します。障害対応の過去の事例や利用しているAWSサービスのドキュメントなどを参照できます。Knowledge Baseが有効な場合のみ使用できます。",
+      description: "Knowledge Baseからドキュメントを検索します。障害対応のナレッジや過去の事例を参照できます。Knowledge Baseが有効な場合のみ使用できます。",
       parameters: [
         {
           name: "query",

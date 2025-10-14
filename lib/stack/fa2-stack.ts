@@ -11,7 +11,7 @@ interface FA2StackProps extends StackProps {
   slackAppTokenKey: string;
   slackSigningSecretKey: string;
   architectureDescription: string;
-  cwLogsLogGroups: string[];
+  cwLogsLogGroupArns: string[];
   cwLogsInsightQuery: string;
   xrayTrace: boolean;
   databaseName?: string;
@@ -22,6 +22,7 @@ interface FA2StackProps extends StackProps {
   knowledgeBaseId?: string;
   rerankModelId?: string;
   maxAgentCycles?: number;
+  crossAccountObservability?: boolean;
 }
 
 export class FA2Stack extends Stack {
@@ -36,8 +37,9 @@ export class FA2Stack extends Stack {
       slackAppTokenKey: props.slackAppTokenKey,
       slackSigningSecretKey: props.slackSigningSecretKey,
       architectureDescription: props.architectureDescription,
-      cwLogsLogGroups: props.cwLogsLogGroups,
+      cwLogsLogGroupArns: props.cwLogsLogGroupArns,
       cwLogsInsightQuery: props.cwLogsInsightQuery,
+      crossAccountObservability: props.crossAccountObservability,
       xrayTrace: props.xrayTrace,
       databaseName: props.databaseName,
       albAccessLogTableName: props.albAccessLogTableName,

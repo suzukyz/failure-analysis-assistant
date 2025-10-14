@@ -30,6 +30,7 @@ interface FA2Props {
   slashCommands: SlashCommands;
   detectorId?: string;
   maxAgentCycles?: number;
+  crossAccountObservability?: boolean;
 }
 
 export class FA2 extends Construct {
@@ -162,6 +163,7 @@ export class FA2 extends Construct {
         CW_LOGS_INSIGHT_QUERY: props.cwLogsInsightQuery,
         SESSION_TABLE_NAME: this.sessionTable.tableName,
         MAX_AGENT_CYCLES: props.maxAgentCycles?.toString() || "5",
+        CROSS_ACCOUNT_OBSERVABILITY: props.crossAccountObservability?.toString() || "false"
       },
       bundling: {
         minify: true,
